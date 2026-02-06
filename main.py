@@ -1,4 +1,3 @@
-import os
 
 from fastapi import Depends, FastAPI
 from sqlalchemy import text
