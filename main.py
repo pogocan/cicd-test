@@ -1,14 +1,15 @@
-
+from database import Base, SessionLocal, engine
 from fastapi import Depends, FastAPI
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from .database import SessionLocal  # Import the plumbing we just built
+import models  # <--- Import your new file
+
+# This line tells SQLAlchemy to create the tables in your DB if they don't exist
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
 
-# Dependency to get a database session
 def get_db():
     db = SessionLocal()
     try:
@@ -19,15 +20,13 @@ def get_db():
 
 @app.get("/")
 def read_root(db: Session = Depends(get_db)):
-    # Simple check to see if the DB is alive
-    try:
-        db.execute(text("SELECT 1"))
-        db_status = "Connected"
-    except Exception as e:
-        db_status = f"Disconnected: {e}"
+    return {"Status": "Live", "Database": "Connected"}
 
-    return {
-        "Status": "Look Ma, no hands!",
-        "Version": "2.0-Automatic",
-        "Database": db_status,
-    }
+
+@app.post("/items/")
+def create_item(title: str, description: str, db: Session = Depends(get_db)):
+    new_item = models.Item(title=title, description=description)
+    db.add(new_item)
+    db.commit()
+    db.refresh(new_item)
+    return new_item

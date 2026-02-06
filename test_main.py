@@ -1,20 +1,21 @@
+from database import DATABASE_URL, Base
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from .database import DATABASE_URL, Base
-from .main import app, get_db
+from main import app, get_db
 
-# Create a dedicated engine for testing
-# Note: SQLite in tests is fast and isolated
+# 1. Setup the Test Database (SQLite)
+# DATABASE_URL is 'sqlite:///./test.db' inside GitHub Actions
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Create the database tables in our test SQLite file
+# 2. Create the tables in the test database
 Base.metadata.create_all(bind=engine)
 
 
-# This replaces the real 'get_db' with our testing version
+# 3. Define the Dependency Override
+# This swaps the real 'get_db' for this test version automatically
 def override_get_db():
     try:
         db = TestingSessionLocal()
@@ -28,12 +29,18 @@ app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
+# 4. The Tests
 def test_read_main():
+    """Verify the root endpoint and database connection."""
     response = client.get("/")
     assert response.status_code == 200
-    # Update this to match your new JSON structure
-    assert response.json() == {
-        "Status": "Look Ma, no hands!",
-        "Version": "2.0-Automatic",
-        "Database": "Connected",
-    }
+    assert response.json() == {"Status": "Live", "Database": "Connected"}
+
+
+def test_create_item():
+    """Verify we can actually save data to the database."""
+    response = client.post(
+        "/items/",
+        params={"title": "CI Test Item", "description": "Testing our pipeline"},
+    )
+    assert response.status_code == 200
