@@ -50,3 +50,12 @@ def test_read_items():
     response = client.get("/items/")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+
+def test_read_main():
+    """Verify the expanded root endpoint."""
+    response = client.get("/")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["Status"] == "Live"
+    assert "Total_Items_Stored" in data  # Checks that the count is there

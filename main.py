@@ -37,3 +37,17 @@ def read_items(db: Session = Depends(get_db)):
     # This queries the 'items' table and returns every row it finds
     items = db.query(models.Item).all()
     return items
+
+
+@app.get("/")
+def read_root(db: Session = Depends(get_db)):
+    # Count how many items exist in the database
+    item_count = db.query(models.Item).count()
+
+    return {
+        "Status": "Live",
+        "Database": "Connected",
+        "Total_Items_Stored": item_count,
+        "Documentation": "/docs",
+        "View_All_Items": "/items/",
+    }
