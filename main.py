@@ -1,8 +1,8 @@
-from database import Base, SessionLocal, engine
 from fastapi import Depends, FastAPI
 from sqlalchemy.orm import Session
 
 import models  # <--- Import your new file
+from database import Base, SessionLocal, engine
 
 # This line tells SQLAlchemy to create the tables in your DB if they don't exist
 Base.metadata.create_all(bind=engine)
@@ -30,3 +30,10 @@ def create_item(title: str, description: str, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_item)
     return new_item
+
+
+@app.get("/items/")
+def read_items(db: Session = Depends(get_db)):
+    # This queries the 'items' table and returns every row it finds
+    items = db.query(models.Item).all()
+    return items

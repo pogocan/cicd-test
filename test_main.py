@@ -1,8 +1,8 @@
-from database import DATABASE_URL, Base
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from database import DATABASE_URL, Base
 from main import app, get_db
 
 # 1. Setup the Test Database (SQLite)
@@ -44,3 +44,9 @@ def test_create_item():
         params={"title": "CI Test Item", "description": "Testing our pipeline"},
     )
     assert response.status_code == 200
+
+
+def test_read_items():
+    response = client.get("/items/")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
