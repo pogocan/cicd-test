@@ -5,4 +5,4 @@ app = FastAPI()
 
 @app.get("/")
 def read_root():
-    return {"Status": "CI/CD is working!", "Version": 1.0}
+    return {"Status": "Look Ma, no hands!", "Version": "2.0-Automatic"}
